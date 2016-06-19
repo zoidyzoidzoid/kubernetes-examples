@@ -1,0 +1,3 @@
+[submodule "docker-django-migrations-example"]
+	path = django-migrations
+	url = https://github.com/zoidbergwill/docker-django-migrations-example.git
