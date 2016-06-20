@@ -43,3 +43,4 @@ echo
 echo "You'll need to run the following to interact with Docker:"
 echo "    eval \$(docker-machine env hyperkube)"
 echo
+echo "hyperkube docker-machine VM IP: $(docker-machine ip hyperkube)"
