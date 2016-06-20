@@ -8,6 +8,9 @@ BASE_DIR=$(dirname -- "${SCRIPTS_DIR}")
 
 . "${SCRIPTS_DIR}/kubectl-configure.sh"
 
-. "${SCRIPTS_DIR}/skydns.sh"
+set +e
+kubectl create namespace kube-system
+set -e
 
+kubectl create -f "${SCRIPTS_DIR}/skydns.yaml"
 kubectl create -f https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
