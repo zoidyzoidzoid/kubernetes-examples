@@ -1,0 +1,4 @@
+- killing a pod
+- rolling updates cuz of long-living services
+
+- set minReadySeconds
