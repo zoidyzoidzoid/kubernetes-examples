@@ -6,41 +6,25 @@ BASE_DIR=$(dirname -- "${SCRIPTS_DIR}")
 
 . "${SCRIPTS_DIR}/_colours.sh"
 
-K8S_VERSION='v1.2.4' #$(curl -sS https://storage.googleapis.com/kubernetes-release/release/stable.txt)
-ARCH='amd64'
+echo_green "Starting minikube (using the xhyve driver)"
 
-echo
-echo "Configuring environment for 'hyperkube' docker machine"
+if ! which docker-machine-driver-xhyve &> /dev/null; then
+  brew install docker-machine-driver-xhyve
+  sudo chown root:wheel $(brew --prefix)/opt/docker-machine-driver-xhyve/bin/docker-machine-driver-xhyve
+  sudo chmod u+s $(brew --prefix)/opt/docker-machine-driver-xhyve/bin/docker-machine-driver-xhyve
+fi
 
-eval $(docker-machine env hyperkube)
+if ! grep -q /Users /etc/exports; then
+  echo "/Users -network 192.168.64.0 -mask 255.255.255.0 -alldirs -maproot=root:wheel" | sudo tee -a /etc/exports
+fi
 
-echo_green "Starting hyperkube with Kubernetes version: ${K8S_VERSION}"
-echo
+sudo nfsd restart
+minikube start --memory=1024 --cpus=1 --vm-driver=xhyve
+minikube ssh -- sudo mkdir -p /Users
+minikube ssh -- "if [ -z \"\$(mount | grep User | grep 192.168.64.1)\" ]; then sudo busybox mount -t nfs -oasync,noatime,nolock 192.168.64.1:/Users /Users; fi"
 
-docker run -d \
-    --volume=/:/rootfs:ro \
-    --volume=/sys:/sys:rw \
-    --volume=/var/lib/docker/:/var/lib/docker:rw \
-    --volume=/var/lib/kubelet/:/var/lib/kubelet:rw \
-    --volume=/var/run:/var/run:rw \
-    --net=host \
-    --pid=host \
-    --privileged \
-    gcr.io/google_containers/hyperkube-${ARCH}:${K8S_VERSION} \
-    /hyperkube kubelet \
-        --containerized \
-        --hostname-override=127.0.0.1 \
-        --api-servers=http://localhost:8080 \
-        --config=/etc/kubernetes/manifests \
-        --cluster-dns=10.0.0.10 \
-        --cluster-domain=cluster.local \
-        --allow-privileged --v=2
-
-echo
-echo_green "Hyperkube is starting..."
-echo "Don't forgot to configure 'kubectl' and start your tunnel to the API server"
 echo
 echo "You'll need to run the following to interact with Docker:"
-echo "    eval \$(docker-machine env hyperkube)"
+echo "    eval \$(minikube docker-env)"
 echo
-echo "hyperkube docker-machine VM IP: $(docker-machine ip hyperkube)"
+echo "minikube VM IP: $(minikube ip)"
