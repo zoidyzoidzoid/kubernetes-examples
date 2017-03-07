@@ -14,7 +14,7 @@ func GetMessage() string {
 }
 
 func main() {
-	fmt.Println("hello-world: 0.2")
+	fmt.Println("hello-world: 0.1")
 	message := GetMessage()
 	fmt.Printf("Hello, %s!\n", message)
 }
