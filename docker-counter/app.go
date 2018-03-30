@@ -17,12 +17,16 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := client.Incr("hits").Err()
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		fmt.Fprintf(w, err.Error())
+		return
 	}
 
 	hits, err := client.Get("hits").Result()
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		fmt.Fprintf(w, err.Error())
+		return
 	}
 
 	fmt.Fprintf(w, "Hello World! I have been seen %s times.", hits)
@@ -39,5 +43,10 @@ func serverNameHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/server-name", serverNameHandler)
-	http.ListenAndServe(":8080", nil)
+	host := os.Getenv("DOCKER_COUNTER_ADDR")
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	fmt.Printf("Now starting server on http://%s:8080\n", host)
+	http.ListenAndServe(host+":8080", nil)
 }
